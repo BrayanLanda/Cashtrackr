@@ -1,17 +1,28 @@
 import { Router } from "express";
 import { BudgetController } from "../controllers/BudgetController";
-import { body } from "express-validator";
+import { body, param } from "express-validator";
+import { handleInputErrors } from "../middleware/validation";
+import { validateBudgetExist, validateBudgetId, validateBudgetInput } from "../middleware/budget";
 
 const router = Router();
 
 router.get('/', BudgetController.getAll);
 
+router.param('budgetId', validateBudgetId);
+router.param('budgetId', validateBudgetExist);
+
 router.post('/', 
-    body('name').notEmpty().withMessage('Name cannot be empty'),
+    validateBudgetInput,
     BudgetController.create);
 
-router.get('/:id', BudgetController.getById);
-router.put('/:id', BudgetController.updateById);
-router.delete('/:id', BudgetController.daleteById);
+router.get('/:budgetId', BudgetController.getById);
+
+
+router.put('/:budgetId', 
+    validateBudgetInput,
+    BudgetController.updateById);
+
+
+router.delete('/:budgetId', BudgetController.daleteById);
 
 export default router;
