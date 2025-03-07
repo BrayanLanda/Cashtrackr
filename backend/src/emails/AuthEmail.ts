@@ -18,9 +18,6 @@ export class AuthEmail {
                 <a href="#">Confirm Email</a>
                 <p>Enter your code: ${user.token}</p>
             `
-        });
-
-        console.log(email);
-        
+        });        
     }
 }
