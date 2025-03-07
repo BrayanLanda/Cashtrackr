@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import User from "../models/User";
-import { hashPassword } from "../utils/auth";
-import { generateToken } from "../utils/token";
+import { comparePassword, hashPassword } from "../utils/auth";
 import { AuthEmail } from "../emails/AuthEmail";
+import { generateJwt } from "../utils/jwt";
+import { generateToken } from "../utils/token";
 
 export class AuthController {
     static createAccount = async (req: Request, res: Response) => {
@@ -16,7 +17,7 @@ export class AuthController {
             const user = new User(req.body);
             user.password = await hashPassword(password);
             user.token = generateToken();
-            await user.save();
+            await user.save()
 
             await AuthEmail.sendConfirmationEmail({
                 name: user.name,
@@ -41,5 +42,31 @@ export class AuthController {
         user.token = null;
         await user.save();
         res.json("Account confirmed successfully");
+    }
+
+    static login = async (req: Request, res: Response) => {
+        const { email, password } = req.body;
+        const user = await User.findOne({ where: { email } });
+        if(!user){
+            const error = new Error('User does not exist');
+            res.status(404).json({ error: error.message });
+            return;
+        }
+
+        if(!user.confirmed){
+            const error = new Error('User not confirmed');
+            res.status(403).json({ error: error.message });
+            return;
+        }
+
+        const passwordMatch = await comparePassword(password, user.password);
+        if(!passwordMatch){
+            const error = new Error('Password does not match');
+            res.status(401).json({ error: error.message });
+            return;
+        }
+
+        const token = generateJwt(user.id)
+        res.json(token);
     }
 }
