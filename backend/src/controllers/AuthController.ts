@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 import User from "../models/User";
 import { comparePassword, hashPassword } from "../utils/auth";
 import { AuthEmail } from "../emails/AuthEmail";
@@ -117,6 +118,10 @@ export class AuthController {
         await user.save();
 
         res.json("Password reset successfully");
+    }
+
+    static user = async (req: Request, res: Response) => {
+        res.json(req.user);
     }
 
 }
