@@ -50,4 +50,19 @@ router.get('/user',
    AuthController.user
 );
 
+router.post('/update-password', 
+   authenticate,
+   body('current_password').notEmpty().withMessage('Password is too short, min 8 characters'),
+   body('password').isLength({ min: 8 }).withMessage('New password is too short, min 8 characters'),
+   handleInputErrors,
+   AuthController.updateCurrentUserPassword
+);
+
+router.post('/check-password', 
+   authenticate,
+   body('password').notEmpty().withMessage('Password is empty'),
+   handleInputErrors,
+   AuthController.checkPassword
+);
+
 export default router;

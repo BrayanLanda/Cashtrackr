@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
 import User from "../models/User";
 import { comparePassword, hashPassword } from "../utils/auth";
 import { AuthEmail } from "../emails/AuthEmail";
@@ -122,6 +121,33 @@ export class AuthController {
 
     static user = async (req: Request, res: Response) => {
         res.json(req.user);
+    }
+
+    static updateCurrentUserPassword = async (req: Request, res: Response) => {
+        const { current_password, password } = req.body;
+        const user = await User.findByPk(req.user.id);
+        const isPasswordCorrect = await comparePassword(current_password, user.password);
+        if(!isPasswordCorrect){
+            const error = new Error('Current password is incorrect');
+            res.status(401).json({ error: error.message });
+            return;
+        }
+
+        user.password = await hashPassword(password);
+        await user.save();
+        res.json("Password updated successfully");
+    }
+
+    static checkPassword = async (req: Request, res: Response) => {
+        const { password } = req.body;
+        const user = await User.findByPk(req.user.id);
+        const isPasswordCorrect = await comparePassword(password, user.password);
+        if(!isPasswordCorrect){
+            const error = new Error('Current password is incorrect');
+            res.status(401).json({ error: error.message });
+            return;
+        }
+        res.json("Password is correct");
     }
 
 }
